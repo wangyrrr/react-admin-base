@@ -99,3 +99,10 @@ declare namespace API {
     type?: NoticeIconItemType;
   };
 }
+
+
+declare type Response = {
+  code?: number;
+  message?: string;
+  data?: any;
+}

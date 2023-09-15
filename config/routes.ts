@@ -29,6 +29,32 @@ export default [
     component: './Welcome',
   },
   {
+    path: '/system',
+    name: '系统管理',
+    icon: 'setting',
+    routes: [
+      {
+        path: '/system',
+        redirect: '/system/menu',
+      },
+      {
+        path: '/system/menu',
+        name: '菜单管理',
+        component: './System/Menu/index',
+      },
+      {
+        path: '/system/role',
+        name: '角色管理',
+        component: './System/Role/index',
+      },
+      {
+        path: '/system/user',
+        name: '用户管理',
+        component: './TableList',
+      }
+    ]
+  },
+  {
     path: '/admin',
     name: 'admin',
     icon: 'crown',
