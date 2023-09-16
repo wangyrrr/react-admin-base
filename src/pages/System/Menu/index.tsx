@@ -1,5 +1,3 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   ProFormDigit,
@@ -10,51 +8,13 @@ import {
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Popconfirm, message, Switch } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import UpdateForm from './components/UpdateForm';
-import { queryMenu, deleteMenu, updateStatus, insertMenu, updateMenu } from './service';
+import { queryMenu, deleteMenu, updateStatus, insertMenu, updateMenu, queryAndParseMenu } from './service';
 import { SUCCESS } from '@/services/response';
 
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: any) => {
-  const hide = message.loading('Configuring');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-
-    message.success('Configuration is successful');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Configuration failed, please try again!');
-    return false;
-  }
-};
 
 
-const parseTreeNode = (treeNode: any) => {
-  const parseResult = {
-    title: treeNode.name,
-    value: treeNode.id,
-    children: []
-  }
-  if (treeNode.children && treeNode.children.length > 0) {
-      const children = treeNode.children.map((m: any) => parseTreeNode(m));
-      parseResult.children = children;
-  }
-  return parseResult;
-}
 
 const parseInitValue = (currentRow) => {
   console.log('转换前：', currentRow)
@@ -279,13 +239,7 @@ const TableList: React.FC = () => {
         ]}
         width="md"/>
         <ProFormTreeSelect
-          request={async () => {
-            const menus = await queryMenu();
-            return new Promise((res, rej) => {
-                const tree = menus.data?.map(p => parseTreeNode(p));
-                res(tree)
-            })
-          }}
+          request={queryAndParseMenu}
           width="md"
           name="parentId"
           label="上级菜单名称："

@@ -44,3 +44,24 @@ export async function updateMenu(params: any) {
     })
 
 }
+
+
+
+const parseTreeNode = (treeNode: any) => {
+    const parseResult = {
+      title: treeNode.name,
+      value: treeNode.id,
+      key: treeNode.id,
+      children: []
+    }
+    if (treeNode.children && treeNode.children.length > 0) {
+        const children = treeNode.children.map((m: any) => parseTreeNode(m));
+        parseResult.children = children;
+    }
+    return parseResult;
+}
+  
+export async function queryAndParseMenu() {
+    const menus = await queryMenu();
+    return menus.data?.map(p => parseTreeNode(p));
+}

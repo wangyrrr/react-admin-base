@@ -50,7 +50,7 @@ export default [
       {
         path: '/system/user',
         name: '用户管理',
-        component: './TableList',
+        component: './System/User/index',
       }
     ]
   },

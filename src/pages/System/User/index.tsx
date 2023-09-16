@@ -1,7 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Popconfirm, Tree, Form} from 'antd';
+import { Button, message, Popconfirm, Tree, Form, Image} from 'antd';
 import React, { useState, useRef, useEffect } from 'react';
-import { rolePage, saveRole, updateRole, deleteRole } from './service';
+import { findPage, saveUser, updateUser, deleteUser, listRole } from './service';
 import { queryAndParseMenu } from '../Menu/service';
 
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -12,6 +12,8 @@ import {
   ProFormText,
   ProFormInstance,
   ProTable,
+  ProFormRadio,
+  ProFormSelect
 } from '@ant-design/pro-components';
 import { SUCCESS } from '@/services/response';
 
@@ -30,7 +32,6 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const formRef = useRef<ProFormInstance>();
   const [currentRow, setCurrentRow] = useState<any>({});
-  const [treeNode, setTreeNode] = useState<any>([]);
   const [checkedKeys, setCheckedKeys] = useState<any>([]);
 
   const handleOpenChange = async (open: boolean) => {
@@ -41,19 +42,12 @@ const TableList: React.FC = () => {
       }
       setCheckedKeys([]);
     } else {
-      const treeNode = await queryAndParseMenu();
-      console.log(treeNode)
-      setTreeNode(treeNode)
       console.log('currentRow:', currentRow)
       setCheckedKeys(currentRow.permissions || []);
     }
     handleModalVisible(open);
   }
 
-  const onCheck = (checkedKeysValue: any) => {
-    console.log('onCheck', checkedKeysValue);
-    setCheckedKeys(checkedKeysValue);
-  };
 
   useEffect(() => {
     if (formRef.current) {
@@ -64,12 +58,43 @@ const TableList: React.FC = () => {
 
   const columns: ProColumns<any>[] = [
     {
-      title: '角色名称',
-      dataIndex: 'roleName',
+      title: '用户id',
+      dataIndex: 'id',
     },
     {
-      title: '角色编码',
-      dataIndex: 'roleCode',
+      title: '用户名',
+      dataIndex: 'username',
+    },
+    {
+      title: '真实名',
+      dataIndex: 'realName',
+    },
+    {
+      title: '性别',
+      dataIndex: 'gender',
+      valueEnum: {1:'男', 2:'女'}
+    },
+    {
+      title: '手机号',
+      dataIndex: 'mobile',
+    },
+    {
+      title: '邮箱',
+      dataIndex: 'email',
+      search: false,
+    },
+    {
+      title: '头像',
+      dataIndex: 'avatar',
+      search: false,
+      render: (_, record) => {
+        return <Image height={50} width={50} src={record.avatar} />
+      }
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      valueEnum: {0:'冻结', 1:'正常'}
     },
     {
       title: '备注',
@@ -104,7 +129,7 @@ const TableList: React.FC = () => {
           编辑
         </a>,
         <Popconfirm key="confirm" title="确认删除吗" onConfirm={() => {
-          deleteRole(record.id).then(res => {
+          deleteUser(record.id).then(res => {
             if (SUCCESS === res.code) {
               message.success("删除成功")
               if (actionRef.current) {
@@ -124,7 +149,7 @@ const TableList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<any>
-        headerTitle={'角色列表'}
+        headerTitle={'用户列表'}
         actionRef={actionRef}
         rowKey="id"
         search={{
@@ -138,15 +163,15 @@ const TableList: React.FC = () => {
               handleModalVisible(true);
             }}
           >
-            新建角色
+            新建用户
           </Button>,
         ]}
-        request={rolePage}
+        request={findPage}
         columns={columns}
         pagination={{pageSize: 10}}
       />
       <ModalForm
-        title={currentRow.id ? '编辑角色' : '新建角色'}
+        title={currentRow.id ? '编辑用户' : '新建用户'}
         width="400px"
         open={createModalVisible}
         onOpenChange={handleOpenChange}
@@ -156,7 +181,7 @@ const TableList: React.FC = () => {
           value.permissions = checkedKeys;
           console.log('value:', value)
           if (value.id) {
-            updateRole(value).then(res => {
+            updateUser(value).then(res => {
               if (SUCCESS === res.code) {
                 message.success("更新成功")
                 if (actionRef.current) {
@@ -165,7 +190,7 @@ const TableList: React.FC = () => {
               }
             })
           } else {
-            saveRole(value).then(res => {
+            saveUser(value).then(res => {
               if (SUCCESS === res.code) {
                 message.success("创建成功")
                 if (actionRef.current) {
@@ -181,37 +206,81 @@ const TableList: React.FC = () => {
         </ProFormDigit>
         <ProFormText
           allowClear
-          label="角色编码:"
+          label="用户名:"
           rules={[
             {
               required: true,
-              message: '角色编码为必填项',
+              message: '用户名为必填项',
             },
           ]}
           width="md"
-          name="roleCode"
+          name="username"
         />
         <ProFormText
           allowClear
-          label="角色名称:"
-          rules={[
-            {
-              required: true,
-              message: '角色名称为必填项',
-            },
-          ]}
+          label="真实名:"
           width="md"
-          name="roleName"
+          name="realName"
         />
-        <ProFormText allowClear label="备注:" width="md" name="remark" />
-        <Form.Item  label="权限:" >
-          <Tree
-            checkable
-            treeData={treeNode}
-            onCheck={onCheck}
-            checkedKeys={checkedKeys}
+        <ProFormRadio.Group
+            name="gender"
+            label="性别："
+            options={[
+              {
+                label: '男',
+                value: 1,
+              },
+              {
+                label: '女',
+                value: 2,
+              },
+            ]}
           />
-        </Form.Item>
+          <ProFormText
+            allowClear
+            label="手机号:"
+            width="md"
+            name="mobile"
+          />
+          <ProFormText
+            allowClear
+            label="邮箱:"
+            width="md"
+            name="email"
+          />
+
+          <ProFormRadio.Group
+            name="status"
+            label="状态："
+            options={[
+              {
+                label: '冻结',
+                value: 0,
+              },
+              {
+                label: '正常',
+                value: 1,
+              },
+            ]}
+          />
+        <ProFormText allowClear label="备注:" width="md" name="remark" />
+        <ProFormSelect
+            name="roles"
+            label="角色:"
+            request={async () => {
+              const roleResult = await listRole();
+              const roleList = roleResult.data.map((r: any) => {
+                return {
+                  label: r.roleName,
+                  value: r.id
+                }
+              })
+              return roleList;
+            }}
+            fieldProps={{
+              mode: 'multiple',
+            }}
+          />
       </ModalForm>
     </PageContainer>
   );
